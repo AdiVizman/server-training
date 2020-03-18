@@ -62,7 +62,7 @@ app.post('/updateCustomer/:id', function (req, res) {
   }
 
   if(!updatedCustomer.firstName) {
-    //return res.send("Send first name!");
+    return res.send("Send first name!");
   }
 
   if(!updatedCustomer.LastName) {
