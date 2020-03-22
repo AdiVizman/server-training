@@ -23,7 +23,7 @@ let customers = [
     }
 ];
 
-// The GraphQL schema in string form
+
 const typeDefs = `
   type Query { 
     getAllCustomers: [Customer],
@@ -51,9 +51,6 @@ const typeDefs = `
 `;
 
 
-
-
-// The resolvers
 const resolvers = {
     Query: {
         getAllCustomers: () => customers ,
@@ -106,23 +103,17 @@ function updateCustomer(updatedCustomer){
 }
 
 
-
-// Put together a schema
 const schema = makeExecutableSchema({
     typeDefs,
     resolvers,
 });
 
-// Initialize the app
+
 const app = express();
 
-// The GraphQL endpoint
 app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
-
-// GraphiQL, a visual editor for queries
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
-// Start the server
 app.listen(3000, () => {
     console.log('Go to http://localhost:3000/graphiql to run queries!');
 });
