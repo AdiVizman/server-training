@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
-const { find, filter } = require('lodash');
 
 let countries = ["Israel", "US", "Spain", "Italy"];
 
@@ -64,11 +63,11 @@ const resolvers = {
 };
 
 function getCustomer(id) {
-    return customers.filter(customer => customer.id === id)[0];
+    return customers.find(customer => customer.id === id);
 }
 
 function deleteCustomer(id) {
-    let customerToDelete = customers.filter(customer => customer.id === id)[0];
+    let customerToDelete = customers.find(customer => customer.id === id);
 
     if (!customerToDelete) {
          return "Couldn't find customer";
@@ -79,7 +78,7 @@ function deleteCustomer(id) {
 }
 
 function createCustomer(newCustomer) {
-    let customer = customers.filter(customer => customer.id === newCustomer.id)[0];
+    let customer = customers.find(customer => customer.id === newCustomer.id);
     if(customer){
         return "The customer already exists!";
     }else if(!countries.includes(newCustomer.country)){
@@ -91,15 +90,18 @@ function createCustomer(newCustomer) {
 }
 
 function updateCustomer(updatedCustomer){
-    if (find(customers, {id: updatedCustomer.id})){
-        let customerToUpdate = customers.filter(customer => customer.id === updatedCustomer.id)[0];
-        let index = customers.indexOf(customerToUpdate);
-        customers[index] = updatedCustomer;
-        return "Customer updated!";
+    let returnMessage ="";
+    customers.forEach( (customer,index) =>{
+        if (customer.id === updatedCustomer.id) {
+            customers[index] = updatedCustomer;
+            returnMessage = "Customer updated!";
+        }
+    });
+
+    if(returnMessage === ""){
+        returnMessage = "Couldn't find customer";
     }
-    else{
-        return "Couldn't find customer";
-    }
+    return returnMessage;
 }
 
 
@@ -115,5 +117,5 @@ app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 app.listen(3000, () => {
-    console.log('Go to http://localhost:3000/graphiql to run queries!');
+    console.log('Go to http://localhost:3000/graphiql');
 });
