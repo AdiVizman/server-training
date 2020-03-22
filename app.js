@@ -15,50 +15,55 @@ let customers = [
   }
 ];
 
-app.get('/getAllCustomers', function(req, res) {
+app.get('/getAllCustomers', (req, res) => {
   res.send(customers);
 });
 
-app.get('/getCustomer/:id', function(req, res) {
+app.get('/getCustomer/:id', (req, res) => {
   let id = parseInt(req.params.id);
-  let customer = customers.filter(customer => customer.id === id)[0];
+  let customer = customers.find(customer => customer.id === id);
 
   if (!customer) {
-    res.sendStatus(404);
+    res.statusCode = 400;
+    return res.send("Could not find customer!");
   } else {
-    res.send(customer);
+    return res.send(customer);
   }
 });
 
-app.post('/createCustomer', function(req, res) {
+app.post('/createCustomer', (req, res) => {
   let newCustomer = req.body;
 
   if (!newCustomer.id || !countries.includes(newCustomer.country)) {
-    return res.sendStatus(500);
+    return res.sendStatus(400);
   }
 
   customers.push(newCustomer);
-   res.send('/createCustomer/' + newCustomer.id);
+  res.statusCode = 200;
+  return res.send("Customer added!");
 });
 
-app.delete('/deleteCustomer/:id', function(req, res) {
+app.delete('/deleteCustomer/:id', (req, res) => {
   let id = parseInt(req.params.id);
-  let customerToDelete = customers.filter(customer => customer.id === id)[0];
+  let customerToDelete = customers.find(customer => customer.id === id);
 
   if (!customerToDelete) {
-    return res.sendStatus(404);
+    res.statusCode = 400;
+    return res.send("Could not find customer!");
   }
 
   customers = customers.filter(customer => customer.id !== id);
-  res.sendStatus(204);
+  res.statusCode = 200;
+  return res.send("Customer deleted!");
 });
 
-app.post('/updateCustomer/:id', function (req, res) {
+app.post('/updateCustomer/:id', (req, res) => {
   let id = parseInt(req.params.id);
   let updatedCustomer = req.body;
 
   if (!updatedCustomer) {
-    return res.sendStatus(404);
+    res.statusCode = 400;
+    return res.send("Could not find customer!");
   }
 
   if(!updatedCustomer.firstName) {
@@ -77,12 +82,16 @@ app.post('/updateCustomer/:id', function (req, res) {
     return res.send("Send city");
   }
 
-  let customerToUpdate = customers.filter(customer => customer.id === id)[0];
-  let index = customers.indexOf(customerToUpdate);
-  customers[index] = updatedCustomer;
+  customers.forEach( (customer,index) =>{
+    if (customer.id === id) {
+      customers[index] = updatedCustomer;
+    }
+  });
 
-  res.sendStatus(204);
-
+  res.statusCode = 200;
+  return res.send("Customer updated!");
 });
 
-const server=app.listen(3000,function() {});
+const server=app.listen(3000,() => {
+  console.log("server is running on port 3000..");
+});
