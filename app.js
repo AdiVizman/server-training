@@ -1,89 +1,128 @@
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
-app.use(bodyParser.json());
+const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
+const { makeExecutableSchema } = require('graphql-tools');
+const { find, filter } = require('lodash');
 
-//adiiiiii
 let countries = ["Israel", "US", "Spain", "Italy"];
 
 let customers = [
-  {
-    id: 123,
-    firstName: 'Adi',
-    LastName: 'Vizman',
-    country: 'Israel',
-    city: 'Ofaqim'
-  }
+    {
+        id: 123,
+        firstName: 'Adi',
+        LastName: 'Vizman',
+        country: 'Israel',
+        city: 'Ofaqim'
+    },
+    {
+        id: 789,
+        firstName: 'Ron',
+        LastName: 'Badur',
+        country: 'Israel',
+        city: 'Ofaqim'
+    }
 ];
 
-app.get('/getAllCustomers', function(req, res) {
-  res.send(customers);
+// The GraphQL schema in string form
+const typeDefs = `
+  type Query { 
+    getAllCustomers: [Customer],
+    getCustomer(id: Int): Customer
+   },
+  input CustomerInput {
+    id: Int,
+    firstName: String,
+    lastName: String,
+    country: String,
+    city: String
+  },
+  type Customer { 
+    id: Int,
+    firstName: String,
+    lastName: String,
+    country: String,
+    city: String
+   },
+  type Mutation {
+    deleteCustomer(id: Int): String,
+    createCustomer(customer: CustomerInput): String,
+    updateCustomer(customer: CustomerInput): String 
+  } 
+`;
+
+
+
+
+// The resolvers
+const resolvers = {
+    Query: {
+        getAllCustomers: () => customers ,
+        getCustomer: (_, {id}) => getCustomer({id}.id)
+    },
+    Mutation : {
+        deleteCustomer: (_, {id}) => deleteCustomer({id}.id),
+        createCustomer: (_, {customer}) => createCustomer({customer}.customer),
+        updateCustomer: (_,{customer}) => updateCustomer({customer}.customer)
+    }
+};
+
+function getCustomer(id) {
+    return customers.filter(customer => customer.id === id)[0];
+}
+
+function deleteCustomer(id) {
+    let customerToDelete = customers.filter(customer => customer.id === id)[0];
+
+    if (!customerToDelete) {
+         return "Couldn't find customer";
+    } else{
+        customers = customers.filter(customer => customer.id !== id);
+    }
+    return 'deleted!';
+}
+
+function createCustomer(newCustomer) {
+    let customer = customers.filter(customer => customer.id === newCustomer.id)[0];
+    if(customer){
+        return "The customer already exists!";
+    }else if(!countries.includes(newCustomer.country)){
+        return "Invalid country!";
+    }
+
+    customers.push(newCustomer);
+    return "Customer added!";
+}
+
+function updateCustomer(updatedCustomer){
+    if (find(customers, {id: updatedCustomer.id})){
+        let customerToUpdate = customers.filter(customer => customer.id === updatedCustomer.id)[0];
+        let index = customers.indexOf(customerToUpdate);
+        customers[index] = updatedCustomer;
+        return "Customer updated!";
+    }
+    else{
+        return "Couldn't find customer";
+    }
+}
+
+
+
+// Put together a schema
+const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
 });
 
-app.get('/getCustomer/:id', function(req, res) {
-  let id = parseInt(req.params.id);
-  let customer = customers.filter(customer => customer.id === id)[0];
+// Initialize the app
+const app = express();
 
-  if (!customer) {
-    res.sendStatus(404);
-  } else {
-    res.send(customer);
-  }
+// The GraphQL endpoint
+app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
+
+// GraphiQL, a visual editor for queries
+app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
+
+// Start the server
+app.listen(3000, () => {
+    console.log('Go to http://localhost:3000/graphiql to run queries!');
 });
-
-app.post('/createCustomer', function(req, res) {
-  let newCustomer = req.body;
-
-  if (!newCustomer.id || !countries.includes(newCustomer.country)) {
-    return res.sendStatus(500);
-  }
-
-  customers.push(newCustomer);
-   res.send('/createCustomer/' + newCustomer.id);
-});
-
-app.delete('/deleteCustomer/:id', function(req, res) {
-  let id = parseInt(req.params.id);
-  let customerToDelete = customers.filter(customer => customer.id === id)[0];
-
-  if (!customerToDelete) {
-    return res.sendStatus(404);
-  }
-
-  customers = customers.filter(customer => customer.id !== id);
-  res.sendStatus(204);
-});
-
-app.post('/updateCustomer/:id', function (req, res) {
-  let id = parseInt(req.params.id);
-  let updatedCustomer = req.body;
-
-  if (!updatedCustomer) {
-    return res.sendStatus(404);
-  }
-
-  if(!updatedCustomer.firstName) {
-    return res.send("Send first name!");
-  }
-
-  if(!updatedCustomer.LastName) {
-    return res.send("Send last name!");
-  }
-
-  if(!updatedCustomer.country) {
-    return res.send("Send country");
-  }
-
-  if(!updatedCustomer.city) {
-    return res.send("Send city");
-  }
-
-  let customerToUpdate = customers.filter(customer => customer.id === id)[0];
-  let index = customers.indexOf(customerToUpdate);
-  customers[index] = updatedCustomer;
-
-  res.sendStatus(204);
-
-});
-
-const server=app.listen(3000,function() {});
