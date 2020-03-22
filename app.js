@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
+//adiiiiii
 let countries = ["Israel", "US", "Spain", "Italy"];
 
 let customers = [
