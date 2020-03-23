@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
 
-let PORT = 3000;
+const PORT = process.env.PORT || 3000;
 let countries = ["Israel", "US", "Spain", "Italy"];
 
 let customers = [
