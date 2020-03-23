@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
+let PORT = 3000;
 let countries = ["Israel", "US", "Spain", "Italy"];
 
 let customers = [
@@ -24,8 +25,7 @@ app.get('/getCustomer/:id', (req, res) => {
   let customer = customers.find(customer => customer.id === id);
 
   if (!customer) {
-    res.statusCode = 400;
-    return res.send("Could not find customer!");
+    return res.status(400).send("Could not find customer!");
   } else {
     return res.send(customer);
   }
@@ -39,8 +39,7 @@ app.post('/createCustomer', (req, res) => {
   }
 
   customers.push(newCustomer);
-  res.statusCode = 200;
-  return res.send("Customer added!");
+  return res.status(200).send("Customer added!");
 });
 
 app.delete('/deleteCustomer/:id', (req, res) => {
@@ -48,13 +47,11 @@ app.delete('/deleteCustomer/:id', (req, res) => {
   let customerToDelete = customers.find(customer => customer.id === id);
 
   if (!customerToDelete) {
-    res.statusCode = 400;
-    return res.send("Could not find customer!");
+    return res.status(400).send("Could not find customer!");
   }
 
   customers = customers.filter(customer => customer.id !== id);
-  res.statusCode = 200;
-  return res.send("Customer deleted!");
+  return res.status(200).send("Customer deleted!");
 });
 
 app.post('/updateCustomer/:id', (req, res) => {
@@ -62,8 +59,7 @@ app.post('/updateCustomer/:id', (req, res) => {
   let updatedCustomer = req.body;
 
   if (!updatedCustomer) {
-    res.statusCode = 400;
-    return res.send("Could not find customer!");
+    return res.status(400).send("Could not find customer!");
   }
 
   if(!updatedCustomer.firstName) {
@@ -88,10 +84,9 @@ app.post('/updateCustomer/:id', (req, res) => {
     }
   });
 
-  res.statusCode = 200;
-  return res.send("Customer updated!");
+  return res.status(200).send("Customer updated!");
 });
 
-const server=app.listen(3000,() => {
-  console.log("server is running on port 3000..");
+const server=app.listen(PORT,() => {
+  console.log("server is running on port "+ PORT);
 });
