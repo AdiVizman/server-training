@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
 
+let PORT = 3000;
 let countries = ["Israel", "US", "Spain", "Italy"];
 
 let customers = [
@@ -116,6 +117,6 @@ const app = express();
 app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
-app.listen(3000, () => {
-    console.log('Go to http://localhost:3000/graphiql');
+app.listen(PORT, () => {
+    console.log('Go to http://localhost:'+PORT+'/graphiql');
 });
